@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http//www.thymeleaf.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http//www.thymeleaf.org "
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+
+<link th:rel="stylesheet" th:href="@{/css/styles.css}">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Update User</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+</head>
+
+<body>
+<div class="topnav">
+    <a class="active" href="http://localhost:8080/">Home</a>
+    <div sec:authorize="hasAnyAuthority('ADMIN')">
+        <a th:href="@{/employees/viewPage}">Employees</a>
+    </div>
+    <!--admin if-->
+    <div class="topnav-right">
+        <a th:href="@{/logout}"> Logout </a>
+    </div>
+</div>
+<div class="container my-5">
+    <h3> Update Employee</h3>
+    <div class="card">
+        <div class="card-body">
+            <div class="col-md-8">
+                <form action="#" th:action="@{/employees/update/{id}(id=${employee.id})}" th:object="${employee}" method="post">
+                    <div class="row">
+                        <div class="form-group col-md-8">
+                            <label for="employeeName" class="col-form-label">First Name</label> <input type="text" th:field="*{employeeName}" class="form-control" id="employeeName" placeholder="First Name"> <span th:if="${#fields.hasErrors('employeeName')}" th:errors="*{employeeName}" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label for="surname" class="col-form-label">Last Name</label> <input type="text" th:field="*{surname}" class="form-control" id="surname" placeholder=" Last Name"> <span th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label for="oib" class="col-form-label">Oib</label> <input type="text" minlength="11" maxlength="11" th:field="*{oib}" class="form-control" id="oib" placeholder="Oib"> <span th:if="${#fields.hasErrors('oib')}" th:errors="*{oib}" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label for="address" class="col-form-label">Address</label> <input type="text" th:field="*{address}" class="form-control" id="address" placeholder="Address"> <span th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label for="email" class="col-form-label">Email</label> <input type="text" th:field="*{email}" class="form-control" id="email" placeholder="Email"> <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label for="passwd" class="col-form-label">Password</label> <input type="text" th:field="*{passwd}" class="form-control" id="passwd" placeholder="Password"> <span th:if="${#fields.hasErrors('passwd')}" th:errors="*{passwd}" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-8">
+                            <label class="col-4 col-form-label">Roles: </label>
+                            <th:block th:each="UserRole: ${listRoles}">
+                                <input type="radio" th:field="*{roles}"
+                                       th:text="${UserRole.roleName}" th:value="${UserRole.id}" class="m-2" />
+                            </th:block>
+                        </div>
+
+                        <div class="form-group col-md-8">
+                            <input type="submit" class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white" value="Update Employee">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

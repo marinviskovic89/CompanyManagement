@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+
+<link th:rel="stylesheet" th:href="@{/css/styles.css}">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Add New Category</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="../css/shards.min.css"> -->
+</head>
+
+<body>
+<div class="topnav">
+    <a class="active" href="http://localhost:8080/">Home</a>
+    <div sec:authorize="hasAnyAuthority('ADMIN')">
+        <a th:href="@{/employees/viewPage}">Employees</a>
+    </div>
+    <!--admin if-->
+    <div class="topnav-right">
+        <a th:href="@{/logout}"> Logout </a>
+    </div>
+</div>
+<div class="container my-5">
+    <br>
+    <div class="card">
+        <div class="card-body">
+            <div class="col-md-10">
+                <form action="#" th:action="@{/categories/addCategory}" th:object="${category}" method="post">
+                    <h3> Add New Category &nbsp;&nbsp;&nbsp;<a href="http://localhost:8080/items/viewPage" class="btn btn-purple" style="background-color:#4f4397;color:white"><i class="fa-solid fa-left"></i>Go back</a></h3>
+                    <div class="row">
+                        <div class="form-group col-md-8">
+                            <label for="categoryName" class="col-form-label">Name</label> <input type="text" th:field="*{categoryName}" class="form-control" id="categoryName" placeholder="Category Name"> <span th:if="${#fields.hasErrors('categoryName')}" th:errors="*{categoryName}" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <input type="submit" class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white" value="Add New Category">
+                        </div>
+
+                        <p class="my-5">
+                            <a href="/items/addItem" class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white"><i
+                                    class="fas fa-wrench"> Add New Item</i></a>
+                        </p>
+
+                        <div class="form-group col-md-8"></div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

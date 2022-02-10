@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+
+<link th:rel="stylesheet" th:href="@{/css/styles.css}">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Users</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="../css/shards.min.css"> -->
+</head>
+
+<body>
+<div class="topnav">
+    <a class="active" href="http://localhost:8080/">Home</a>
+    <div sec:authorize="hasAnyAuthority('ADMIN')">
+        <a th:href="@{/employees/viewPage}">Employees</a>
+    </div>
+    <!--admin if-->
+    <div class="topnav-right">
+        <a th:href="@{/logout}"> Logout </a>
+    </div>
+</div>
+
+<!--<div class="container my-2">!-->
+<div class="card">
+    <div class="card-body">
+
+        <div th:switch="${listCustomers}" class="container my-5">
+            <p class="my-5">
+                <a href="/customers/signup" class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white"><i class="fas fa-plus"></i>&nbsp;Add Customer</a>
+            </p>
+            <div>
+                <form th:action="@{/customers/search}">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Filter by surname" name="keyword" th:value="${keyword}"required/>
+                    &nbsp;
+                    <input type="submit" value="Search" class="btn btn-purple btn-sm" style="font:Verdana;background-color:#4f4397;color:white"/>
+                    &nbsp;
+                    <input type="button" value="Clear" id="btnClear" onclick="clearFilter()" class="btn btn-purple btn-sm" style="font:Verdana;background-color:#4f4397;color:white"/>
+                </form>
+            </div>
+            <br>
+            <div class="col-md-10">
+                <h2 th:case="null">No customers with this name</h2>
+                <div th:case="*">
+                    <table class="table table-striped table-responsive-md">
+                        <thead>
+                        <tr>
+                            <th>First&nbsp;Name</th>
+                            <th>Last&nbsp;Name</th>
+                            <th>OIB</th>
+                            <th>Address</th>
+                            <th>Telephone</th>
+                            <th>City</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="customers : ${listCustomers}">
+                            <td th:text="${customers.customerName}"></td>
+                            <td class="text-nowrap" th:text="${customers.surname}"></td>
+                            <td th:text="${customers.oib}"></td>
+                            <td class="text-nowrap" th:text="${customers.address}"></td>
+                            <td th:text="${customers.telephone}"></td>
+                            <td class="text-nowrap" th:text="${customers.city}"></td>
+                            <td><a th:href="@{/customers/edit/{id}(id=${customers.id})}" class="btn btn-info btn-sm" style="font:Verdana;background-color:#17a2b8;color:white"><i class="fas fa-info-circle"></i>&nbsp;Edit customer</a></td>
+                            <td><a th:href="@{/customers/delete/{id}(id=${customers.id})}" class="btn btn-danger btn-sm" style="font:Verdana;background-color:#dc3545;color:white"><i class="fas fa-trash-alt"></i>&nbsp;Delete customer</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>&nbsp;</div>
+                <div>
+                    Total items: [[${totalElements}]] - Page [[${currentPage}]] of [[${totalPages}]]
+                    &nbsp; &nbsp;
+                    <a class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white" th:if="${currentPage > 1}" th:href="@{'/customers/page/1?sortField='+ ${sortField} + '&sortDir=' + ${sortDir}}">First</a>
+                    <span th:unless="${currentPage > 1}">First</span>
+
+                    <span th:each="i: ${#numbers.sequence(1, totalPages)}">
+                            <a th:if="${i != currentPage} "th:href="@{'/customers/page/' + ${i} + '?sortField='+ ${sortField} + '&sortDir=' + ${sortDir}}">[[${i}]]</a>
+                            <span th:unless="${i != currentPage}">[[${i}]]</span>
+                        </span>
+
+                    <a class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white" th:if="${currentPage < totalPages}" th:href="@{'/customers/page/' + ${totalPages} + '?sortField='+ ${sortField} + '&sortDir=' + ${sortDir}}">Last</a>
+                    <span th:unless="${currentPage < totalPages}">Last</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!--</div>!-->
+<script type="text/javascript">
+    function clearFilter() {
+        window.location = '/customers/viewPage';
+    }
+</script>
+</body>
+
+</html>

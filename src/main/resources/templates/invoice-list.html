@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+
+<link th:href="@{/css/styles.css}" th:rel="stylesheet">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="ie=edge" http-equiv="x-ua-compatible">
+    <title>Invoices</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" rel="stylesheet">
+    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css"
+          integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="../css/shards.min.css"> -->
+
+    <style>
+        .btn-purple{
+            background-color:#4f4397;
+            color:white;
+        }
+    </style>
+</head>
+
+<body>
+<div class="topnav">
+    <a class="active" href="http://localhost:8080/">Home</a>
+    <div sec:authorize="hasAnyAuthority('ADMIN')">
+        <a th:href="@{/employees/viewPage}">Employees</a>
+    </div>
+    <!--admin if-->
+    <div class="topnav-right">
+        <a th:href="@{/logout}"> Logout </a>
+    </div>
+</div>
+<!--<div class="container my-2">!-->
+<div class="card">
+    <div class="card-body">
+        <div class="container my-5" th:switch="${invoices}">
+            <p class="my-5">
+                <a style="color: white" class="btn btn-purple btn-sm"
+                   th:href="@{/invoices/invoice}">
+                    <i class="fas fa-plus"></i>
+                    <span>Create Invoice</span>
+                </a>
+                <a style="color: white" class="btn btn-purple btn-sm"
+                   th:href="@{/reports/invoice}">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Reports</span>
+                </a>
+            </p>
+            <form method="POST" th:action="@{/invoices/search}" th:object="${searchParams}">
+                <div class="row">
+                    <div class="form-group col-md-1">
+                        <i class="fas fa-search fa-2x" style="display: inline"></i>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <input class="form-control" style="display: inline" th:field="*{searchText}"
+                               type="text"/>
+                        <br/>
+                        <div align="center">
+                            <small style="color: #7D6B91">search by customer name or surname</small>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <input class="form-control" style="display: inline" th:field="*{date}"
+                               type="date"/>
+                        <br/>
+                        <div align="center">
+                            <small style="color: #7D6B91">search by date</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <button class="btn btn-purple" type="submit">Search</button>
+                        <button type="button" value="Clear" id="btnClear" onclick="clearFilter()" class="btn btn-purple"/>Clear</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+            <div class="col-md-10">
+                <h2 th:case="null">No invoices yet!</h2>
+                <div th:case="*">
+                    <table class="table table-striped table-responsive-md">
+                        <thead>
+                        <tr>
+                            <th>
+                                <a th:href="@{'/invoices/page/' + ${currentPage} + '?sortField=dateOfIssue&sortDir=' + ${reverseSortDir}}">
+                                Date of issue<small style="color: #7D6B91">&nbsp;(sort all invoices)</small>
+                                </a>
+                            </th>
+                            <th>Customer</th>
+                            <th>Total amount</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                            <th>Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="invoice : ${invoices}">
+                            <td th:text="${invoice.dateOfIssue}"></td>
+                            <td th:text="${invoice?.customer?.customerName} + ' ' + ${invoice?.customer?.surname}"></td>
+                            <td th:text="${invoice.totalAmount} + 'KN'"></td>
+                            <td th:text="${invoice?.paymentStatus}"></td>
+                            <td>
+                                <a class="btn btn-info btn-sm"
+                                   th:href="@{'/invoices/view/' + ${invoice.id}}">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Invoice Details</span>
+                                </a>
+                            </td>
+                            <td>
+                                <a class="btn btn-danger btn-sm"
+                                   th:href="@{'/invoices/delete/' + ${invoice.id}}"
+                                   th:attr="onclick='return confirm(\'Are you sure?\');'">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span>Delete Invoice</span>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div>
+                        <div>&nbsp;</div>
+                        <div>
+                            Total items: [[${totalElements}]] - Page [[${currentPage}]] of [[${totalPages}]]
+                            &nbsp; &nbsp;
+                            <a class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white" th:if="${currentPage > 1}" th:href="@{'/invoices/page/1?sortField='+ ${sortField} + '&sortDir=' + ${sortDir}}">First</a>
+                            <span th:unless="${currentPage > 1}">First</span>
+
+                            <span th:each="i: ${#numbers.sequence(1, totalPages)}">
+                            <a th:if="${i != currentPage} "th:href="@{'/invoices/page/' + ${i} + '?sortField='+ ${sortField} + '&sortDir=' + ${sortDir}}">[[${i}]]</a>
+                            <span th:unless="${i != currentPage}">[[${i}]]</span>
+                        </span>
+
+                            <a class="btn btn-purple btn-sm" style="background-color:#4f4397;color:white" th:if="${currentPage < totalPages}" th:href="@{'/invoices/page/' + ${totalPages} + '?sortField='+ ${sortField} + '&sortDir=' + ${sortDir}}">Last</a>
+                            <span th:unless="${currentPage < totalPages}">Last</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function clearFilter() {
+        window.location = '/invoices/viewPage';
+    }
+
+
+
+
+</script>
+</body>
+
+</html>

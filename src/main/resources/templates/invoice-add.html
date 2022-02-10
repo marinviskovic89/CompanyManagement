@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="ie=edge" http-equiv="x-ua-compatible">
+    <title>Add New Invoice</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" rel="stylesheet">
+    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css"
+          integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="../css/shards.min.css"> -->
+
+    <link th:href="@{/css/styles.css}" th:rel="stylesheet">
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+
+    <style>
+        .btn-purple{
+            background-color:#4f4397;
+            color:white;
+        }
+    </style>
+</head>
+
+<body>
+<div class="topnav">
+    <a class="active" href="http://localhost:8080/">Home</a>
+    <div sec:authorize="hasAnyAuthority('ADMIN')">
+        <a th:href="@{/employees/viewPage}">Employees</a>
+    </div>
+    <!--admin if-->
+    <div class="topnav-right">
+        <a th:href="@{/logout}"> Logout </a>
+    </div>
+</div>
+<div class="container my-5">
+    <br><br>
+    <div th:if="${info}">
+        <div class="alert alert-warning alert-dismissible" th:if="${info} != ''">
+            <a aria-label="close" class="close" data-dismiss="alert" href="#">&times;</a>
+            <span th:text="${info}">MSG</span>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header bg-dark text-white h4">Create Invoice</div>
+        <div class="card-body">
+            <div class="col-md-10">
+                <form action="#" method="post" th:action="@{/invoices/invoice}" th:object="${invoice}">
+                    <div class="row">
+                        <div class="form-group col-md-8">
+                            <label for="customerId">Customer</label>
+                            <select class="form-control" id="customerId" name="customerId" th:field="*{customerId}">
+                                <option value=""></option>
+                                <option th:each="customer : ${customers}"
+                                        th:text="${customer.customerName} + ' ' + ${customer?.surname}"
+                                        th:value="${customer.id}">
+                                </option>
+                            </select>
+                            <span class="text-danger" th:errors="*{customerId}"
+                                  th:if="${#fields.hasErrors('customerId')}"></span>
+                        </div>
+
+                        <div class="form-group col-md-8">
+                            <label class="col-form-label" for="discount">Discount</label>
+                            <input class="form-control"
+                                   id="discount"
+                                   placeholder="Items to add in stock"
+                                   th:field="*{discount}"
+                                   type="number">
+                            <span class="text-danger" th:errors="*{discount}"
+                                  th:if="${#fields.hasErrors('discount')}"></span>
+                        </div>
+
+
+                        <div class="form-group col-md-8">
+                            <label for="paymentMethod">Payment method</label>
+                            <select class="form-control" id="paymentMethod" name="paymentMethod" th:field="*{paymentMethod}">
+                                <option value=""></option>
+                                <option th:each="pm : ${paymentMethods}"
+                                        th:text="${pm}"
+                                        th:value="${pm.name}">
+                                </option>
+                            </select>
+                            <span class="text-danger" th:errors="*{paymentMethod}"
+                                  th:if="${#fields.hasErrors('paymentMethod')}"></span>
+                        </div>
+
+                        <div class="form-group col-md-8">
+                            <label for="search_product" class="col-sm-3 col-form-label">Search item</label>
+                            <input type="text" name="search_product" id="search_product" class="form-control"/>
+                        </div>
+
+                        <table class="d-none">
+
+                            <tbody id="templateItemsInvoice">
+                            <tr id="row_{id}">
+                                <td class="d-none">
+                                    <input type="hidden" value="{id}" name="item_id[]"/>
+                                </td>
+                                <td class="pl-3" id="name_{id}">{NAME}</td>
+                                <td class="pl-3" id="price_{id}">{PRICE}</td>
+                                <td>
+                                    <input type="number" value="1" name="amount[]"
+                                           id="amount_{id}" class="form-control col-sm-4"
+                                           onchange="itemsHelper.calculateImport('{id}', {PRICE}, this.value);"/>
+                                </td>
+                                <td><span id="total_import_{id}">0</span></td>
+                                <td class="d-flex justify-content-center">
+                                    <a href="#" class="btn btn-danger btn-sm"
+                                       onclick="itemsHelper.deleteInvoiceLine('{id}');"><i
+                                            class="fas fa-trash trash-icon"></i></a></td>
+                            </tr>
+                            </tbody>
+
+                        </table>
+
+                        <div class="table-responsive">
+                            <table id="loadItemProducts" class="table table-striped table-responsive-md">
+                                <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody th:if="*{items}">
+                                <tr th:each="i : *{items}" id="row_{i.item.id}">
+                                    <input type="hidden" name="item_id[]" th:value="${i.item.id}"/></td>
+                                    <td th:text="${i.item.itemName}"></td>
+                                    <td th:text="${i.item.price}"></td>
+                                    <td>
+                                        <input type="number" th:value="${i.amount}" name="amount[]" class="form-control col-sm-4"
+                                               onchange="itemsHelper.calculateImport({i.item.id}, {i.item.price}, this.value)"/>
+                                    </td>
+                                    <td th:text="${i.calculateImport()}"></td>
+                                    <td class="d-flex justify-content-center">
+                                        <a href="#" class="btn btn-danger btn-sm"
+                                           onclick="itemsHelper.deleteInvoiceLine('{id}');"><i
+                                                class="fas fa-trash trash-icon"></i></a></td>
+                                </tr>
+                                </tbody>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <hr/>
+
+                        <div class="col-md-8">
+                            <h5>Total Amount: <span id="final_total">0</span></h5>
+                        </div>
+
+                        <div class="col-md-6">
+                            <input class="btn btn-purple" type="submit" value="Create">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="itemIds" th:object="${itemId}">
+<input type="hidden" id="urlAjax" th:value="@{'/invoices/load-products/'}"/>
+<script type="text/javascript" >
+$(document).ready(function() {
+
+    var urlAjax = $("#urlAjax").val();
+    $("#search_product").autocomplete({
+        source : function(request, response) {
+            $.ajax({
+                url : urlAjax + request.term,
+                dataType : "json",
+                data : {
+                    term : request.term
+                },
+                success : function(data) {
+                    response($.map(data, function(item) {
+                        return {
+                            value : item.id,
+                            label : item.name,
+                            price : item.price,
+                        };
+                    }));
+
+                }
+            });
+        },
+        select : function(event, ui) {
+            //$("#search_product").val(ui.item.label);
+
+            if(itemsHelper.hasProduct(ui.item.value)){
+                itemsHelper.incrementAmount(ui.item.value, ui.item.price);
+                return false;
+            }
+
+            var line = $("#templateItemsInvoice").html();
+
+            line = line.replace(/{id}/g, ui.item.value);
+            line = line.replace(/{NAME}/g, ui.item.label);
+            line = line.replace(/{PRICE}/g, ui.item.price);
+
+            $("#loadItemProducts tbody").append(line);
+            itemsHelper.calculateImport(ui.item.value, ui.item.price, 1);
+
+            return false;
+        }
+    });
+
+    $("form").submit(function(){
+        $("#templateItemsInvoice").remove();
+        return;
+    });
+
+});
+
+var itemsHelper = {
+        calculateImport: function(id, price, amount){
+            $("#total_import_" + id).html(parseInt(price) * parseInt(amount));
+            this.calculateFinalTotal();
+        },
+
+        recalculateImport: function(id){
+            console.log(id)
+            var amount = $("#amount_" + id).val()
+            var price = $("#price_" + id).val()
+            $("#total_import_" + id).html(parseInt(price) * parseInt(amount));
+            this.calculateFinalTotal();
+        },
+
+        hasProduct: function(id){
+
+            var result = false;
+
+            $('input[name="item_id[]"]').each(function(){
+                if(parseInt(id) == parseInt($(this).val())) {
+                    result = true;
+                }
+            });
+
+            return result;
+        },
+        incrementAmount: function(id, price){
+            var amount = $("#amount_" + id).val() ? parseInt($("#amount_" + id).val()) : 0;
+            $("#amount_" + id).val(++amount);
+            this.calculateImport(id, price, amount);
+        },
+        deleteInvoiceLine: function(id){
+            $("#row_" + id).remove();
+            this.calculateFinalTotal();
+        },
+        calculateFinalTotal: function(){
+            var total = 0;
+
+            $('span[id^="total_import_"]').each(function(){
+
+                total += parseInt($(this).html());
+
+            });
+
+            $('#final_total').html(total);
+
+        }
+}
+
+</script>
+</body>
+</html>
